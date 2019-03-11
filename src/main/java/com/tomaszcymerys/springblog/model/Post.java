@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "posts")
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 @ToString
@@ -26,11 +25,13 @@ public class Post {
     private Profile author;
 
     @Column(updatable = false, nullable = false)
-    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     private LocalDateTime dateCreated = LocalDateTime.now();
 
-    @NotNull
-    private LocalDateTime dateUpdated = LocalDateTime.now();
+    private LocalDateTime dateUpdated;
+
+    @OneToOne
+    private Profile updatedBy;
 
     @NotBlank
     @Size(min = 4, max = 150)

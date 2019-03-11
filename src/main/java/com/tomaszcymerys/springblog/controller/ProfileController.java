@@ -1,7 +1,12 @@
 package com.tomaszcymerys.springblog.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.util.JSONPObject;
+import com.tomaszcymerys.springblog.model.Post;
 import com.tomaszcymerys.springblog.model.Profile;
+import com.tomaszcymerys.springblog.repository.PostRepository;
 import com.tomaszcymerys.springblog.repository.ProfileRepository;
+import com.tomaszcymerys.springblog.util.JsonMsg;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +20,11 @@ import java.util.Collection;
 public class ProfileController {
 
     private ProfileRepository profileRepository;
+    private PostRepository postRepository;
 
-    public ProfileController(ProfileRepository profileRepository) {
+    public ProfileController(ProfileRepository profileRepository, PostRepository postRepository) {
         this.profileRepository = profileRepository;
+        this.postRepository = postRepository;
     }
 
     @GetMapping
@@ -55,7 +62,7 @@ public class ProfileController {
     }
 
     @PutMapping("/{id}/update")
-    public ResponseEntity update(@RequestBody @Valid Profile profile, @PathVariable Long id) {
+    public ResponseEntity update(@RequestBody Profile profile, @PathVariable Long id) {
         return this.profileRepository.findById(id)
                 .map(p -> {
                     p.setUsername(profile.getUsername());
@@ -71,8 +78,9 @@ public class ProfileController {
     @DeleteMapping("/{id}/remove")
     public ResponseEntity remove(@PathVariable Long id) {
         try {
+            this.postRepository.removeByAuthorId(id);
             this.profileRepository.deleteById(id);
-            return ResponseEntity.ok("Removed entity Profile with ID [" + id + "]");
+            return ResponseEntity.ok(JsonMsg.removed(Profile.class, id));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e);
         }

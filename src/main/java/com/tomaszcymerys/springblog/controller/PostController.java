@@ -1,10 +1,8 @@
 package com.tomaszcymerys.springblog.controller;
 
 import com.tomaszcymerys.springblog.model.Post;
-import com.tomaszcymerys.springblog.model.Profile;
-import com.tomaszcymerys.springblog.repository.PostRespository;
-import javafx.geometry.Pos;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.tomaszcymerys.springblog.repository.PostRepository;
+import com.tomaszcymerys.springblog.util.JsonMsg;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,15 +15,15 @@ import java.util.Collection;
 @RequestMapping("/post")
 public class PostController {
 
-    private PostRespository postRespository;
+    private PostRepository postRepository;
 
-    public PostController(PostRespository postRespository) {
-        this.postRespository = postRespository;
+    public PostController(PostRepository postRepository) {
+        this.postRepository = postRepository;
     }
 
     @GetMapping
     public ResponseEntity getAll() {
-        Collection<Post> col = this.postRespository.findAll();
+        Collection<Post> col = this.postRepository.findAll();
         if(col == null)
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Collection cannot be null!");
         if(col.isEmpty())
@@ -35,7 +33,7 @@ public class PostController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Post> get(@PathVariable Long id) {
-        return this.postRespository.findById(id)
+        return this.postRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -43,7 +41,7 @@ public class PostController {
     @PostMapping("/create")
     public ResponseEntity create(@RequestBody @Valid Post post) {
         try {
-            Post saved = this.postRespository.save(post);
+            Post saved = this.postRepository.save(post);
             return ResponseEntity.ok(saved);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e);
@@ -51,14 +49,13 @@ public class PostController {
     }
 
     @PutMapping("/{id}/update")
-    public ResponseEntity update(@RequestBody @Valid Post post, @PathVariable Long id) {
-        return this.postRespository.findById(id)
+    public ResponseEntity update(@RequestBody Post post, @PathVariable Long id) {
+        return this.postRepository.findById(id)
                 .map(p -> {
                     p.setDateUpdated(LocalDateTime.now());
-                    p.setAuthor(post.getAuthor());
                     p.setTitle(post.getTitle());
                     p.setContent(post.getContent());
-                    Post saved = this.postRespository.save(p);
+                    Post saved = this.postRepository.save(p);
                     return ResponseEntity.ok(saved);
                 })
                 .orElse(ResponseEntity.badRequest().build());
@@ -67,8 +64,8 @@ public class PostController {
     @DeleteMapping("/{id}/remove")
     public ResponseEntity remove(@PathVariable Long id) {
         try {
-            this.postRespository.deleteById(id);
-            return ResponseEntity.ok("Removed entity Post with ID [" + id + "]");
+            this.postRepository.deleteById(id);
+            return ResponseEntity.ok(JsonMsg.removed(Post.class, id));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e);
         }
@@ -76,7 +73,7 @@ public class PostController {
 
     @GetMapping("/profile/{id}")
     public ResponseEntity getByProfile(@PathVariable Long id) {
-        Collection<Post> col = this.postRespository.findByAuthorId(id);
+        Collection<Post> col = this.postRepository.findByAuthorId(id);
         if(col.isEmpty())
             return ResponseEntity.notFound().build();
         return ResponseEntity.ok(col);
