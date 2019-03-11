@@ -3,7 +3,7 @@ package com.tomaszcymerys.springblog.model;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.validator.constraints.UniqueElements;
+import lombok.ToString;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
@@ -13,8 +13,9 @@ import javax.validation.constraints.Size;
 @Entity
 @Table(name = "profiles")
 @NoArgsConstructor
-@Getter
 @Setter
+@Getter
+@ToString
 public class Profile {
 
     @Id
@@ -46,4 +47,5 @@ public class Profile {
         this.firstName = firstName;
         this.lastName = lastName;
     }
+
 }
